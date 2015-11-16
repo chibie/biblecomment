@@ -3,11 +3,12 @@ from django.conf import settings
 
 
 class AllowReply(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    author = models.OneToOneField(settings.AUTH_USER_MODEL)
     allow_reply = models.BooleanField(True)
 
 
 class Comment(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
     text = models.TextField()
     pub_date = models.DateTimeField('date published', auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
@@ -29,8 +30,8 @@ class Comment(models.Model):
 
 
 class Reply(models.Model):
-    author = models.OneToOneField(settings.AUTH_USER_MODEL)
-    comment = models.ForeignKey(Comment)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    comment = models.OneToOneField(Comment)
     text = models.TextField()
     pub_date = models.DateTimeField('date published')
     was_blessed = models.PositiveIntegerField(default=0)
