@@ -11,12 +11,7 @@ class Comment(models.Model):
 
     def _get_reference(self):
         """Returns bible verse complete reference"""
-
-        if self.end_verse > self.start_verse:
-            return "{0} {1}:{2}-{3}"\
-                .format(self.book, self.chapter, self.start_verse, self.end_verse)
-        else:
-            return "{0} {1}:{2}".format(self.book, self.chapter, self.start_verse)
+        return ""
 
     reference = property(_get_reference)
 
