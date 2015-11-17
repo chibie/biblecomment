@@ -2,11 +2,6 @@ from django.db import models
 from django.conf import settings
 
 
-class AllowReply(models.Model):
-    author = models.OneToOneField(settings.AUTH_USER_MODEL)
-    allow_reply = models.BooleanField(True)
-
-
 class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
     text = models.TextField()
