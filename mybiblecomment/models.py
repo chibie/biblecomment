@@ -1,9 +1,11 @@
 from django.db import models
+from bible.models import Verse
 from django.conf import settings
 
 
 class Comment(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    verse = models.OneToOneField(Verse, related_name="comment")
     text = models.TextField()
     pub_date = models.DateTimeField('date published', auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
@@ -11,7 +13,7 @@ class Comment(models.Model):
 
     def _get_reference(self):
         """Returns bible verse complete reference"""
-        return ""
+        return "{0} {1}:{2}".format(self.verse.chapter.book.name, self.verse.chapter.number, self.verse.number)
 
     reference = property(_get_reference)
 
@@ -21,7 +23,7 @@ class Comment(models.Model):
 
 class Reply(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
-    comment = models.OneToOneField(Comment)
+    comment = models.ForeignKey(Comment, related_name='replies')
     text = models.TextField()
     pub_date = models.DateTimeField('date published')
     was_blessed = models.PositiveIntegerField(default=0)
