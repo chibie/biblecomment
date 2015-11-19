@@ -16,7 +16,7 @@ import datetime
 class IndexView(FormMixin, TemplateView):
     form_class = LoginForm
     template_name = 'biblecomment/index.html'
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('biblecomment:index')
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -39,8 +39,7 @@ class WriteCommentView(CreateView):
     model = Comment
     fields = ['author', 'bible_verse', 'text']
     template_name = 'biblecomment/write_comment.html'
-    """
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(WriteCommentView, self).dispatch(self, request, *args, **kwargs)
-    """
