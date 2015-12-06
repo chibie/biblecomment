@@ -14,7 +14,6 @@ class Comment(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     was_blessed = models.PositiveIntegerField(default=0)
 
-    @property
     def _get_reference(self):
         # Returns bible verse complete reference
         if self.start_verse > self.end_verse:
@@ -24,7 +23,6 @@ class Comment(models.Model):
         elif self.start_verse < self.end_verse:
             return "{0} {1}:{2}-{3}".format(self.book.name, self.chapter, self.start_verse, self.end_verse)
 
-    @property
     def _get_reference_text(self):
         # Returns the text of the bible reference
         if self.start_verse == self.end_verse:
@@ -38,14 +36,16 @@ class Comment(models.Model):
     reference_text = property(_get_reference_text)
 
     def __str__(self):
-        return self.reference
+        return "{0} by {1}".format(self._get_reference(), self.author.username)
 
 
 class Reply(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    name = models.CharField('name', max_length=30, default="")
+    email = models.EmailField('email address', default="")
     comment = models.ForeignKey(Comment, related_name='replies')
     text = models.TextField()
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField('date published', auto_now_add=True)
     was_blessed = models.PositiveIntegerField(default=0)
 
     class Meta:
