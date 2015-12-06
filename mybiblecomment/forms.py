@@ -1,5 +1,6 @@
 from django import forms
 from bible.models import Book
+from mybiblecomment.models import Comment, Reply
 
 
 class ScriptureLookupForm(forms.Form):
@@ -10,6 +11,10 @@ class ScriptureLookupForm(forms.Form):
         widget=forms.TextInput(attrs={'maxlength': '3', 'size': '3', 'value': '1'}))
     end_verse = forms.CharField(
         widget=forms.TextInput(attrs={'maxlength': '3', 'size': '3', 'value': '1'}))
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user') or None
+        super(ScriptureLookupForm, self).__init__(*args, **kwargs)
 
     def clean_chapter(self):
         cleaned_data = super(ScriptureLookupForm, self).clean()
@@ -55,7 +60,7 @@ class ScriptureLookupForm(forms.Form):
                 )
         return end_verse
 
-    def clean_book(self):
+    def clean(self):
         cleaned_data = super(ScriptureLookupForm, self).clean()
         book = cleaned_data.get("book")
         chapter = cleaned_data.get("chapter")
@@ -65,8 +70,47 @@ class ScriptureLookupForm(forms.Form):
         if book and chapter and start_verse and end_verse:
             if int(end_verse) < int(start_verse):
                 raise forms.ValidationError(
-                    "Did you mean %(book)s %(chapter)s : %(start_verse)s - %(end_verse)s?",
+                    "Did you mean %(book)s %(chapter)s : %(end_verse)s - %(start_verse)s?",
                     params={'book': book, 'chapter': chapter, 'start_verse': start_verse, 'end_verse': end_verse},
                     code='invalid_reference'
                 )
-        return book
+
+            query_reference = Comment.objects.filter(
+                author=self.user.username,
+                book=book,
+                chapter=chapter,
+                start_verse__gte=start_verse,
+                end_verse__lte=end_verse,
+            )
+
+            if len(query_reference) > 0:
+                raise forms.ValidationError(
+                    "You have already commented on %(book)s %(chapter)s : %(start_verse)s - %(end_verse)s.",
+                    params={
+                        'book': book,
+                        'chapter': chapter,
+                        'start_verse': start_verse,
+                        'end_verse': end_verse
+                    },
+                    code='invalid_query'
+                )
+
+        return self.cleaned_data
+
+
+class WriteCommentForm(forms.ModelForm):
+    text = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'write your comment here...'}), required=True)
+
+    class Meta:
+        model = Comment
+        fields = ['text']
+
+
+class ReplyCommentForm(forms.ModelForm):
+    name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Name'}), required=False)
+    email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Email'}), required=False)
+    text = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'write your reply here...'}), required=True)
+
+    class Meta:
+        model = Reply
+        fields = ['name', 'email', 'text']
